@@ -3,11 +3,12 @@ import torch
 from torch.utils.data import DataLoader
 import torch.nn.functional as F
 from torchvision import transforms
-from mimeta import MIMeta
 from pytorch_lightning.loggers import TensorBoardLogger
 from pytorch_lightning.callbacks import ModelCheckpoint
 from model import ResNet18Classifier
 import argparse
+
+from chaksu import Chaksu_Classification
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Script for training model.")
@@ -34,50 +35,56 @@ if __name__ == "__main__":
         help="Learning rate for ADAM optimizer.",
         default=1e-4,
     )
+    parser.add_argument(
+        "--base_model",
+        type=str,
+        help="Base model architecture ('resnet18', 'resnet50').",
+        default="resnet18",
+    )
+    parser.add_argument(
+        "--use_rois",
+        type=bool,
+        help="Use ROIs. If false uses the whole image.",
+        default=True,
+    )
 
     args = parser.parse_args()
 
+    checkpoint_callbacks = [
+        ModelCheckpoint(
+            monitor="val/total_loss",
+            filename="best-loss-{epoch}-{step}",
+        ),
+        ModelCheckpoint(
+            monitor="val/dice",
+            filename="best-dice-{epoch}-{step}",
+            mode="max",
+        ),
+    ]
+
     transform_list = []
     if args.use_data_augmentation:
-        random_crop_and_resize = transforms.Compose(
-            [
-                transforms.RandomCrop(200),
-                transforms.Resize(224),
-            ]
-        )
-
         transform_list = [
             transforms.RandomHorizontalFlip(p=0.25),
             transforms.RandomVerticalFlip(p=0.25),
             transforms.RandomRotation(
                 10, interpolation=transforms.InterpolationMode.BILINEAR
             ),
-            transforms.RandomApply([random_crop_and_resize], p=0.25),
         ]
-    transform_list += [
-        transforms.ToTensor(),
-        transforms.Lambda(lambda x: x.repeat(3, 1, 1)),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-    ]
 
     # Define the data loaders
     transform = transforms.Compose(transform_list)
 
-    dataset = MIMeta(
-        "data",
-        "Mammography (Masses)",
-        "pathology",
-        original_split="train",
-        transform=transform,
+    if args.use_rois:
+        Chaksu = "/mnt/qb/work/baumgartner/bkc562/ResearchProject/Chaksu/Chaksu_ROI.h5"
+    else:
+        Chaksu = "/mnt/qb/work/baumgartner/bkc562/ResearchProject/Chaksu/Chaksu.h5"
+
+    train_dataset = Chaksu_Classification(
+        file_path=Chaksu, t="train", transform=transform
     )
-
-    # Compute the lengths of the splits
-    train_length = int(0.8 * len(dataset))
-    valid_length = len(dataset) - train_length
-
-    # Perform the random split
-    train_dataset, valid_dataset = torch.utils.data.random_split(
-        dataset, [train_length, valid_length]
+    valid_dataset = Chaksu_Classification(
+        file_path=Chaksu, t="val", transform=transform
     )
 
     print(f"Training dataset length: {len(train_dataset)}")
@@ -86,11 +93,15 @@ if __name__ == "__main__":
     train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
     valid_loader = DataLoader(valid_dataset, batch_size=32, shuffle=True)
 
-    experiment_name = args.experiment_name
+    experiment_name = args.experiment_name + f"-{args.base_model}"
     if args.use_data_augmentation:
         experiment_name += "-with-aug"
     experiment_name += f"-LR{str(args.learning_rate)}"
     experiment_name += f"-WD{str(args.weight_decay)}"
+    if args.use_rois:
+        experiment_name += "-rois"
+    else:
+        experiment_name += "-fullimgs"
 
     logger = TensorBoardLogger(
         save_dir="./runs", name=experiment_name, default_hp_metric=False
@@ -110,11 +121,11 @@ if __name__ == "__main__":
     ]
 
     # Create the model and trainer
-    num_classes = dataset.task_target.value
     model = ResNet18Classifier(
-        num_classes=num_classes,
+        num_classes=2,
         learning_rate=args.learning_rate,
         weight_decay=args.weight_decay,
+        base_model=args.base_model,
     )
     trainer = pl.Trainer(
         max_epochs=1000,

@@ -8,13 +8,23 @@ import torchmetrics
 
 
 class ResNet18Classifier(pl.LightningModule):
-    def __init__(self, num_classes, learning_rate=1e-4, weight_decay=0.0):
+    def __init__(
+        self, num_classes, learning_rate=1e-4, weight_decay=0.0, base_model="resnet18"
+    ):
         super(ResNet18Classifier, self).__init__()
-        self.resnet18 = models.resnet18(pretrained=True)
+
+        if base_model == "resnet18":
+            self.resnet = models.resnet18(pretrained=True)
+        elif base_model == "resnet50":
+            self.resnet = models.resnet50(pretrained=True)
+        else:
+            raise ValueError(
+                f"Unknown base_model architecture: {base_model}. Should be resnet18 or resnet50."
+            )
 
         # Replace the final fully connected layer to match the number of classes in the dataset
-        num_features = self.resnet18.fc.in_features
-        self.resnet18.fc = nn.Linear(num_features, num_classes)
+        num_features = self.resnet.fc.in_features
+        self.resnet.fc = nn.Linear(num_features, num_classes)
 
         self.learning_rate = learning_rate
         self.weight_decay = weight_decay
@@ -45,7 +55,7 @@ class ResNet18Classifier(pl.LightningModule):
         self.test_labels = []
 
     def forward(self, x):
-        return self.resnet18(x)
+        return self.resnet(x)
 
     def training_step(self, batch, batch_idx):
         x, y = batch
@@ -96,7 +106,9 @@ class ResNet18Classifier(pl.LightningModule):
         all_preds = torch.cat(self.test_outputs)
         all_labels = torch.cat(self.test_labels)
 
-        test_confusion_matrix = torchmetrics.classification.BinaryConfusionMatrix().to(device=self.device)
+        test_confusion_matrix = torchmetrics.classification.BinaryConfusionMatrix().to(
+            device=self.device
+        )
         bcm = test_confusion_matrix(all_preds, all_labels)
 
         print("Confusion Matrix:")

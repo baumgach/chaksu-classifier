@@ -1,10 +1,11 @@
-from mimeta import MIMeta
 from model import ResNet18Classifier
 from torchvision import transforms
 import os
 from torch.utils.data import DataLoader
 import pytorch_lightning as pl
 import argparse
+
+from chaksu import Chaksu_Classification
 
 
 def dir_path(string):
@@ -30,6 +31,18 @@ if __name__ == "__main__":
         help="Filter by checkpoint identifier such aus 'auc' or 'loss'",
         default=None,
     )
+    parser.add_argument(
+        "--base_model",
+        type=str,
+        help="Base model architecture ('resnet18', 'resnet50').",
+        default="resnet18",
+    )
+    parser.add_argument(
+        "--use_rois",
+        type=bool,
+        help="Use ROIs. If false uses the whole image.",
+        default=True,
+    )
 
     args = parser.parse_args()
 
@@ -44,27 +57,22 @@ if __name__ == "__main__":
     # Get the most recent checkpoint
     latest_checkpoint = os.path.join(checkpoint_dir, checkpoints[-1])
 
-    transform = transforms.Compose(
-        [
-            transforms.ToTensor(),
-            transforms.Lambda(lambda x: x.repeat(3, 1, 1)),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-        ]
-    )
+    if args.use_rois:
+        Chaksu = (
+            "/mnt/qb/work/baumgartner/bkc562/ResearchProject/Chaksu/Chaksu_ROI_test.h5"
+        )
+    else:
+        Chaksu = "/mnt/qb/work/baumgartner/bkc562/ResearchProject/Chaksu/Chaksu_test.h5"
 
-    test_dataset = MIMeta(
-        "data",
-        "Mammography (Masses)",
-        "pathology",
-        original_split="test",
-        transform=transform,
+    test_dataset = Chaksu_Classification(file_path=Chaksu, t="test")
+    test_loader = DataLoader(
+        test_dataset, batch_size=32, drop_last=False, shuffle=False
     )
-
-    test_loader = DataLoader(test_dataset, batch_size=32)
 
     model = ResNet18Classifier.load_from_checkpoint(
         num_classes=2,
         checkpoint_path=latest_checkpoint,
+        base_model=args.base_model,
     )
 
     trainer = pl.Trainer()
