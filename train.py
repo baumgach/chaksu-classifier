@@ -43,9 +43,8 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--use_rois",
-        type=bool,
+        action="store_true",
         help="Use ROIs. If false uses the whole image.",
-        default=True,
     )
 
     args = parser.parse_args()
