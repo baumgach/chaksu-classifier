@@ -50,6 +50,12 @@ class ResNet18Classifier(pl.LightningModule):
         self.test_auc = torchmetrics.classification.AUROC(
             task="binary", num_classes=num_classes
         )
+        self.test_sensitivity = torchmetrics.classification.Recall(
+            task="binary", num_classes=num_classes
+        )
+        self.test_specificity = torchmetrics.classification.Specificity(
+            task="binary", num_classes=num_classes
+        )
 
         self.test_outputs = []
         self.test_labels = []
@@ -98,6 +104,12 @@ class ResNet18Classifier(pl.LightningModule):
 
         self.test_auc(logits, y)
         self.log("test/auc", self.test_auc)
+
+        self.test_sensitivity(logits, y)
+        self.log("test/sensitivity", self.test_sensitivity)
+
+        self.test_specificity(logits, y)
+        self.log("test/specificity", self.test_specificity)
 
         self.test_outputs.append(torch.argmax(logits, dim=1))
         self.test_labels.append(torch.argmax(y, dim=1))
