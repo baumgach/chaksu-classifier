@@ -65,7 +65,7 @@ if __name__ == "__main__":
 
     test_dataset = Chaksu_Classification(file_path=Chaksu, t="test")
     test_loader = DataLoader(
-        test_dataset, batch_size=1, drop_last=False, shuffle=False
+        test_dataset, batch_size=2, drop_last=False, shuffle=False
     )
 
     model = ResNet18Classifier.load_from_checkpoint(
