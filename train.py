@@ -71,8 +71,6 @@ if __name__ == "__main__":
     valid_loader = DataLoader(valid_dataset, batch_size=32, shuffle=True)
 
     experiment_name = args.experiment_name + f"-{args.base_model}"
-    if args.use_data_augmentation:
-        experiment_name += "-with-aug"
     experiment_name += f"-LR{str(args.learning_rate)}"
     experiment_name += f"-WD{str(args.weight_decay)}"
     if args.use_rois:
