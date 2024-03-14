@@ -6,45 +6,6 @@ from torch.utils.data import DataLoader, ConcatDataset
 import h5py
 
 
-# def collate_fn(batch):
-#     x = [item[0] for item in batch]
-#     y = [item[1] for item in batch]
-#     all_ys = [item[2] for item in batch]
-#     return torch.stack(x, 0), torch.stack(y, 0), all_ys
-
-
-# def create_train_val_loaders(file_path1, file_path2, batch_size):
-# dataset_train_Chaksu = Chaksu(file_path=file_path1, t="train")
-# dataset_val_Chaksu = Chaksu(file_path=file_path1, t="val")
-# dataset_train_RIGA = RIGA(file_path=file_path2, t="train")
-# dataset_val_RIGA = RIGA(file_path=file_path2, t="val")
-
-# dataset_train = ConcatDataset((dataset_train_Chaksu, dataset_train_RIGA))
-# dataset_val = ConcatDataset((dataset_val_Chaksu, dataset_val_RIGA))
-
-# train_loader = DataLoader(
-#     dataset_train,
-#     batch_size=batch_size,
-#     shuffle=True,
-#     collate_fn=collate_fn,
-#     drop_last=True,
-# )
-# validation_loader = DataLoader(
-#     dataset_val,
-#     batch_size=batch_size,
-#     shuffle=True,
-#     collate_fn=collate_fn,
-#     drop_last=True,
-# )
-
-# print(
-#     "Number of training/validation patches:",
-#     (len(dataset_train), len(dataset_val)),
-# )
-
-# return train_loader, validation_loader
-
-
 class Chaksu_Classification(Dataset):
     def __init__(self, file_path, t: str, transform=None):
         hf = h5py.File(file_path, "r")
