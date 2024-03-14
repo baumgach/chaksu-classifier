@@ -31,7 +31,7 @@ class Chaksu_Classification(Dataset):
         # change shape from (size, size, 3) to (3, size, size)
         image = np.moveaxis(image, -1, 0)
 
-        # select random annotation
+        # get expert majority vote
         label = np.round(self.diagnoses[index, :].mean())
 
         # Convert to torch tensor
