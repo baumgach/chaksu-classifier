@@ -41,6 +41,11 @@ if __name__ == "__main__":
         action="store_true",
         help="Use ROIs. If false uses the whole image.",
     )
+    parser.add_argument(
+        "--use_data_augmentation",
+        action="store_true",
+        help="Training uses data augmentation if enabled.",
+    )
 
     args = parser.parse_args()
 
@@ -61,7 +66,23 @@ if __name__ == "__main__":
     else:
         Chaksu = "/mnt/qb/work/baumgartner/bkc562/ResearchProject/Chaksu/Chaksu.h5"
 
-    train_dataset = Chaksu_Classification(file_path=Chaksu, t="train")
+    transform_list = []
+    if args.use_data_augmentation:
+        transform_list = [
+            transforms.RandomHorizontalFlip(p=0.25),
+            transforms.RandomVerticalFlip(p=0.25),
+            transforms.RandomRotation(
+                10, interpolation=transforms.InterpolationMode.BILINEAR
+            ),
+        ]
+
+    transform = (
+        transforms.Compose(transform_list) if args.use_data_augmentation else None
+    )
+
+    train_dataset = Chaksu_Classification(
+        file_path=Chaksu, t="train", transform=transform
+    )
     valid_dataset = Chaksu_Classification(file_path=Chaksu, t="val")
 
     print(f"Training dataset length: {len(train_dataset)}")
@@ -71,6 +92,8 @@ if __name__ == "__main__":
     valid_loader = DataLoader(valid_dataset, batch_size=32, shuffle=True)
 
     experiment_name = args.experiment_name + f"-{args.base_model}"
+    if args.use_data_augmentation:
+        experiment_name += "-with-aug"
     experiment_name += f"-LR{str(args.learning_rate)}"
     experiment_name += f"-WD{str(args.weight_decay)}"
     if args.use_rois:
