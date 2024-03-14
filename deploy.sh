@@ -24,7 +24,7 @@ conda activate pytorch
 
 # Run our code
 echo "-------- PYTHON OUTPUT ----------"
-python train.py --experiment_name="chaksu" --use_data_augmentation
+python train.py --experiment_name="chaksu" 
 echo "---------------------------------"
 
 # Deactivate environment again

@@ -1,4 +1,4 @@
-from model import ResNet18Classifier
+from model import ResNetClassifier
 from torchvision import transforms
 import os
 from torch.utils.data import DataLoader
@@ -68,7 +68,7 @@ if __name__ == "__main__":
         test_dataset, batch_size=32, drop_last=False, shuffle=False
     )
 
-    model = ResNet18Classifier.load_from_checkpoint(
+    model = ResNetClassifier.load_from_checkpoint(
         num_classes=2,
         checkpoint_path=latest_checkpoint,
         base_model=args.base_model,

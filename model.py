@@ -7,11 +7,11 @@ from torchvision import models
 import torchmetrics
 
 
-class ResNet18Classifier(pl.LightningModule):
+class ResNetClassifier(pl.LightningModule):
     def __init__(
         self, num_classes, learning_rate=1e-4, weight_decay=0.0, base_model="resnet18"
     ):
-        super(ResNet18Classifier, self).__init__()
+        super(ResNetClassifier, self).__init__()
 
         if base_model == "resnet18":
             self.resnet = models.resnet18(pretrained=True)

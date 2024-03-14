@@ -5,7 +5,7 @@ import torch.nn.functional as F
 from torchvision import transforms
 from pytorch_lightning.loggers import TensorBoardLogger
 from pytorch_lightning.callbacks import ModelCheckpoint
-from model import ResNet18Classifier
+from model import ResNetClassifier
 import argparse
 
 from chaksu import Chaksu_Classification
@@ -17,11 +17,6 @@ if __name__ == "__main__":
         type=str,
         help="Base name for experiment.",
         required=True,
-    )
-    parser.add_argument(
-        "--use_data_augmentation",
-        action="store_true",
-        help="Training uses data augmentation if enabled.",
     )
     parser.add_argument(
         "--weight_decay",
@@ -61,30 +56,13 @@ if __name__ == "__main__":
         ),
     ]
 
-    transform_list = []
-    if args.use_data_augmentation:
-        transform_list = [
-            transforms.RandomHorizontalFlip(p=0.25),
-            transforms.RandomVerticalFlip(p=0.25),
-            transforms.RandomRotation(
-                10, interpolation=transforms.InterpolationMode.BILINEAR
-            ),
-        ]
-
-    # Define the data loaders
-    transform = transforms.Compose(transform_list)
-
     if args.use_rois:
         Chaksu = "/mnt/qb/work/baumgartner/bkc562/ResearchProject/Chaksu/Chaksu_ROI.h5"
     else:
         Chaksu = "/mnt/qb/work/baumgartner/bkc562/ResearchProject/Chaksu/Chaksu.h5"
 
-    train_dataset = Chaksu_Classification(
-        file_path=Chaksu, t="train", transform=transform
-    )
-    valid_dataset = Chaksu_Classification(
-        file_path=Chaksu, t="val", transform=transform
-    )
+    train_dataset = Chaksu_Classification(file_path=Chaksu, t="train")
+    valid_dataset = Chaksu_Classification(file_path=Chaksu, t="val")
 
     print(f"Training dataset length: {len(train_dataset)}")
     print(f"Validation dataset length: {len(valid_dataset)}")
@@ -120,7 +98,7 @@ if __name__ == "__main__":
     ]
 
     # Create the model and trainer
-    model = ResNet18Classifier(
+    model = ResNetClassifier(
         num_classes=2,
         learning_rate=args.learning_rate,
         weight_decay=args.weight_decay,
