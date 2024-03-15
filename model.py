@@ -6,7 +6,7 @@ import torch.nn.functional as F
 from torchvision import models
 import torchmetrics
 from sklearn import metrics
-
+import numpy as np
 
 class ResNetClassifier(pl.LightningModule):
     def __init__(
@@ -131,6 +131,28 @@ class ResNetClassifier(pl.LightningModule):
             all_labels.cpu(), all_probas.cpu(), pos_label=1
         )
         print("SKLEARN AUROC:", metrics.auc(fpr, tpr))
+
+        # Calculate the Youden Index
+        youden_index = tpr - fpr
+
+        # Find the optimal threshold
+        optimal_idx = np.argmax(youden_index)
+        optimal_threshold = thresholds[optimal_idx]
+
+        print("Optimal threshold:", optimal_threshold)
+        preds_threshold = (all_probas >= optimal_threshold).astype(int)
+
+        # Calculate confusion matrix
+        tn, fp, fn, tp = metrics.confusion_matrix(all_labels.cpu(), preds_threshold).ravel()
+
+        # Compute sensitivity and specificity
+        sensitivity = tp / (tp + fn)
+        specificity = tn / (tn + fp)
+
+        print("Sensitivity:", sensitivity)
+        print("Specificity:", specificity)
+
+
 
     def configure_optimizers(self):
         optimizer = optim.Adam(
