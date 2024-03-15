@@ -140,12 +140,12 @@ class ResNetClassifier(pl.LightningModule):
         optimal_threshold = thresholds[optimal_idx]
 
         print("Optimal threshold:", optimal_threshold)
-        preds_threshold = (all_probas >= optimal_threshold).astype(int)
+        preds_threshold = (all_probas.cpu().detach().numpy() >= optimal_threshold).astype(int)
 
         # Calculate confusion matrix
         tn, fp, fn, tp = metrics.confusion_matrix(all_labels.cpu(), preds_threshold).ravel()
 
-        # Compute sensitivity and specificity
+        # Compute sensitivity and specificityß
         sensitivity = tp / (tp + fn)
         specificity = tn / (tn + fp)
 
