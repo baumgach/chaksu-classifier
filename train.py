@@ -62,7 +62,9 @@ if __name__ == "__main__":
     ]
 
     if args.use_rois:
-        data_path = "/mnt/qb/work/baumgartner/bkc562/ResearchProject/Chaksu/Chaksu_ROI.h5"
+        data_path = (
+            "/mnt/qb/work/baumgartner/bkc562/ResearchProject/Chaksu/Chaksu_ROI.h5"
+        )
     else:
         data_path = "/mnt/qb/work/baumgartner/bkc562/ResearchProject/Chaksu/Chaksu.h5"
 
@@ -76,7 +78,6 @@ if __name__ == "__main__":
         )
         transform_list = [
             transforms.RandomHorizontalFlip(p=0.25),
-            transforms.RandomVerticalFlip(p=0.25),
             transforms.RandomRotation(
                 10, interpolation=transforms.InterpolationMode.BILINEAR
             ),

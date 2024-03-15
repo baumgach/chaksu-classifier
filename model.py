@@ -8,6 +8,7 @@ import torchmetrics
 from sklearn import metrics
 import numpy as np
 
+
 class ResNetClassifier(pl.LightningModule):
     def __init__(
         self, num_classes, learning_rate=1e-4, weight_decay=0.0, base_model="resnet18"
@@ -140,10 +141,14 @@ class ResNetClassifier(pl.LightningModule):
         optimal_threshold = thresholds[optimal_idx]
 
         print("Optimal threshold:", optimal_threshold)
-        preds_threshold = (all_probas.cpu().detach().numpy() >= optimal_threshold).astype(int)
+        preds_threshold = (
+            all_probas.cpu().detach().numpy() >= optimal_threshold
+        ).astype(int)
 
         # Calculate confusion matrix
-        tn, fp, fn, tp = metrics.confusion_matrix(all_labels.cpu(), preds_threshold).ravel()
+        tn, fp, fn, tp = metrics.confusion_matrix(
+            all_labels.cpu(), preds_threshold
+        ).ravel()
 
         # Compute sensitivity and specificityß
         sensitivity = tp / (tp + fn)
@@ -151,8 +156,6 @@ class ResNetClassifier(pl.LightningModule):
 
         print("Sensitivity:", sensitivity)
         print("Specificity:", specificity)
-
-
 
     def configure_optimizers(self):
         optimizer = optim.Adam(
