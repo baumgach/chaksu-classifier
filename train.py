@@ -83,13 +83,15 @@ if __name__ == "__main__":
     train_dataset = Chaksu_Classification(
         file_path=Chaksu, t="train", transform=transform
     )
-    valid_dataset = Chaksu_Classification(file_path=Chaksu, t="val")
+    valid_dataset = Chaksu_Classification(file_path=Chaksu, t="val", transform=None)
 
     print(f"Training dataset length: {len(train_dataset)}")
     print(f"Validation dataset length: {len(valid_dataset)}")
 
     train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
-    valid_loader = DataLoader(valid_dataset, batch_size=32, shuffle=True)
+    valid_loader = DataLoader(
+        valid_dataset, batch_size=32, shuffle=True, drop_last=False
+    )
 
     experiment_name = args.experiment_name + f"-{args.base_model}"
     if args.use_data_augmentation:
