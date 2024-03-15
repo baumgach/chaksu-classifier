@@ -62,18 +62,25 @@ if __name__ == "__main__":
     ]
 
     if args.use_rois:
-        Chaksu = "/mnt/qb/work/baumgartner/bkc562/ResearchProject/Chaksu/Chaksu_ROI.h5"
+        data_path = "/mnt/qb/work/baumgartner/bkc562/ResearchProject/Chaksu/Chaksu_ROI.h5"
     else:
-        Chaksu = "/mnt/qb/work/baumgartner/bkc562/ResearchProject/Chaksu/Chaksu.h5"
+        data_path = "/mnt/qb/work/baumgartner/bkc562/ResearchProject/Chaksu/Chaksu.h5"
 
     transform_list = []
     if args.use_data_augmentation:
+        random_crop_and_resize = transforms.Compose(
+            [
+                transforms.RandomCrop(300),
+                transforms.Resize(320),
+            ]
+        )
         transform_list = [
             transforms.RandomHorizontalFlip(p=0.25),
             transforms.RandomVerticalFlip(p=0.25),
             transforms.RandomRotation(
                 10, interpolation=transforms.InterpolationMode.BILINEAR
             ),
+            transforms.RandomApply([random_crop_and_resize], p=0.25),
         ]
 
     transform = (
@@ -81,9 +88,9 @@ if __name__ == "__main__":
     )
 
     train_dataset = Chaksu_Classification(
-        file_path=Chaksu, t="train", transform=transform
+        file_path=data_path, t="train", transform=transform
     )
-    valid_dataset = Chaksu_Classification(file_path=Chaksu, t="val", transform=None)
+    valid_dataset = Chaksu_Classification(file_path=data_path, t="val", transform=None)
 
     print(f"Training dataset length: {len(train_dataset)}")
     print(f"Validation dataset length: {len(valid_dataset)}")
