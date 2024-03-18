@@ -41,8 +41,6 @@ class ResNetClassifier(pl.LightningModule):
 
         self.test_acc = torchmetrics.classification.Accuracy(task="binary")
         self.test_auc = torchmetrics.classification.AUROC(task="binary")
-        self.test_sensitivity = torchmetrics.classification.Recall(task="binary")
-        self.test_specificity = torchmetrics.classification.Specificity(task="binary")
 
         self.test_outputs = []
         self.test_labels = []
@@ -98,12 +96,6 @@ class ResNetClassifier(pl.LightningModule):
         self.test_auc(probas, y[:, 1])
         self.log("test/auc", self.test_auc)
 
-        self.test_sensitivity(preds, y[:, 1])
-        self.log("test/sensitivity", self.test_sensitivity)
-
-        self.test_specificity(preds, y[:, 1])
-        self.log("test/specificity", self.test_specificity)
-
         self.test_outputs.append(preds)
         self.test_labels.append(torch.argmax(y, dim=1))
         self.test_probas.append(probas)
@@ -113,6 +105,8 @@ class ResNetClassifier(pl.LightningModule):
         all_labels = torch.cat(self.test_labels)
         all_probas = torch.cat(self.test_probas)
 
+        print("SKLEARN METRICS:")
+        
         test_confusion_matrix = torchmetrics.classification.BinaryConfusionMatrix().to(
             device=self.device
         )
@@ -121,17 +115,10 @@ class ResNetClassifier(pl.LightningModule):
         print("Confusion Matrix:")
         print(bcm)
 
-        # Sanity check
-        test_auroc = torchmetrics.classification.AUROC(task="binary").to(
-            device=self.device
-        )
-        print("Sanity AUROC:")
-        print(test_auroc(all_probas, all_labels))
-
         fpr, tpr, thresholds = metrics.roc_curve(
             all_labels.cpu(), all_probas.cpu(), pos_label=1
         )
-        print("SKLEARN AUROC:", metrics.auc(fpr, tpr))
+        print("AUROC:", metrics.auc(fpr, tpr))
 
         # Calculate the Youden Index
         youden_index = tpr - fpr
