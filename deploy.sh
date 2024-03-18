@@ -24,7 +24,7 @@ conda activate pytorch
 
 # Run our code
 echo "-------- PYTHON OUTPUT ----------"
-python train.py --experiment_name="chaksu" 
+python train.py --experiment_name="chaksu-novertflip" --use_data_augmentation --use_rois --base_model="resnet50"
 echo "---------------------------------"
 
 # Deactivate environment again
